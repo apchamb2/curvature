@@ -1,0 +1,29 @@
+triangle controller.cs 
+Create 3 spheres in your scene: PointA, PointB, PointC
+
+Attach this script to an empty GameObject (TriangleController)
+
+Drag the spheres into the script's public fields (pointA, pointB, pointC)
+
+Run the scene in Play Mode
+
+Press spacebar → it logs the angles to a CSV file in:
+
+Application.persistentDataPath (on your PC, typically a temp folder)
+
+Create your TriangleController GameObject
+
+Assign:
+
+PointA, PointB, PointC = 3 spheres in the scene
+
+xrCamera = the Main Camera (child of XR Origin)
+
+Press Play with your headset on — the triangle will appear at your eye level and 2m in front
+
+Customize Later
+Use pointC as the adjustable sphere via VR controller
+
+Add grab/translate input using the XR Interaction Toolkit
+
+Lock movement to a plane (e.g., constant eye-height)
