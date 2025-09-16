@@ -6,8 +6,6 @@ public class PointerRotation : MonoBehaviour
 {
     [Header("Rotation Settings")]
     public float rotationSpeed = 50f;
-
-    [Tooltip("Maximum left/right angle in degrees from the starting rotation")]
     public float maxYawAngle = 90f;
 
     [Header("References")]
