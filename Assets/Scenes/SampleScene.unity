@@ -1719,19 +1719,33 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d195545a16ac32e489e2e8bf2084627c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rotationSpeed: 100
-  moveAction:
+  rotationSpeed: 50
+  maxYawAngle: 90
+  sphere: {fileID: 3782097903012917064}
+  rightJoystickAction:
     m_UseReference: 1
     m_Action:
-      m_Name: Move
+      m_Name: Right Joystick
       m_Type: 0
-      m_ExpectedControlType: Vector2
-      m_Id: aac1f434-86dc-4f21-94ac-d7cd2184e9ec
+      m_ExpectedControlType: 
+      m_Id: 4fdcac05-1fdf-47ca-9882-1e357c1834dc
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings: []
       m_Flags: 0
-    m_Reference: {fileID: 6972639530819350904, guid: c348712bda248c246b8c49b3db54643f, type: 3}
+    m_Reference: {fileID: -8198699208435500284, guid: c348712bda248c246b8c49b3db54643f, type: 3}
+  aButtonAction:
+    m_UseReference: 1
+    m_Action:
+      m_Name: A Button
+      m_Type: 0
+      m_ExpectedControlType: 
+      m_Id: cb0aac8a-7be0-41a4-87e8-903a3da2a81c
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings: []
+      m_Flags: 0
+    m_Reference: {fileID: 83097790271614945, guid: c348712bda248c246b8c49b3db54643f, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
