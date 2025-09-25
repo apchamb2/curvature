@@ -1,68 +1,98 @@
+using System.IO;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using System.IO;
+using System; 
 
 public class DataLogger : MonoBehaviour
 {
     [Header("References")]
-    public Transform pointer;  // Pointer vertex
-    public Transform sphere;   // Sphere vertex
+    public Transform pointer;    
+    public Transform sphere;    
 
     [Header("Button Input")]
-    public InputActionProperty aButtonAction; // XRI RightHand Interaction / Activate
+    public InputActionProperty aButtonAction; // subject presses A to record angle
 
-    private string subjectID = "DefaultSubject";
+    private string subjectID = "default_subject";
     private string filePath;
+    private Trial currentTrial;
 
-    void Start()
+    private void Start()
     {
-        // Create file immediately if subjectID already set
-        if (!string.IsNullOrEmpty(subjectID))
-            CreateFile();
+        SetupFile(subjectID);
     }
 
-    public void SetSubjectID(string newID)
+    private void Update()
     {
-        if (string.IsNullOrEmpty(newID)) return;
-
-        subjectID = newID;
-        CreateFile();
-    }
-
-    private void CreateFile()
-    {
-        string fileName = subjectID + ".csv";
-        filePath = Path.Combine(Application.persistentDataPath, fileName);
-
-        if (!File.Exists(filePath))
+        if (aButtonAction != null && aButtonAction.action != null)
         {
-            File.WriteAllText(filePath, "Timestamp,Angle\n");
+            if (aButtonAction.action.WasPressedThisFrame())
+            {
+                LogCurrentAngle();
+            }
         }
+    }
+
+    /// <summary>
+    /// Called from ExperimentSetup when subject ID is entered
+    /// </summary>
+    public void SetSubjectID(string id)
+    {
+        subjectID = id;
+        SetupFile(subjectID);
+    }
+
+    /// <summary>
+    /// Called from TrialManager when a new trial starts
+    /// </summary>
+    public void SetCurrentTrial(Trial trial)
+    {
+        currentTrial = trial;
+    }
+
+    private void SetupFile(string id)
+    {
+        string folderPath = GetLogFolder();
+
+        if (!Directory.Exists(folderPath))
+            Directory.CreateDirectory(folderPath);
+
+        string timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
+        string fileName = $"{id}_{timestamp}.csv";
+
+        filePath = Path.Combine(folderPath, fileName);
+
+        string header = "Time,TrialNumber,Distance,Side,Angle";
+        File.WriteAllText(filePath, header + "\n");
 
         Debug.Log($"[DataLogger] Logging to: {filePath}");
     }
 
-    void Update()
+    private string GetLogFolder()  // creates data folder on desktop or persistent path for Quest
     {
-        if (aButtonAction == null || aButtonAction.action == null) return;
-        if (pointer == null || sphere == null) return;
+#if UNITY_ANDROID && !UNITY_EDITOR
+            // Safe path for Quest
+            return Path.Combine(Application.persistentDataPath, "Data");
+#else
+        return Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.Desktop), "ExperimentData");
+#endif
+    }
 
-        if (aButtonAction.action.WasPressedThisFrame())
+    private void LogCurrentAngle() // calculates angle and appends to CSV
+    {
+        if (pointer == null || sphere == null || currentTrial == null)
         {
-            // Pointer forward direction
-            Vector3 pointerForward = pointer.forward;
-
-            // Direction from pointer to sphere
-            Vector3 legDirection = (sphere.position - pointer.position).normalized;
-
-            // Compute signed angle in the horizontal plane (Y axis up)
-            float angle = Vector3.SignedAngle(pointerForward, legDirection, Vector3.up);
-
-            // Append to CSV
-            string line = $"{System.DateTime.Now:O},{angle:F2}\n";
-            File.AppendAllText(filePath, line);
-
-            Debug.Log($"[DataLogger] Saved angle {angle:F2}° to {filePath}");
+            Debug.LogWarning("[DataLogger] Missing references or trial info.");
+            return;
         }
+
+        float angle = Vector3.SignedAngle(
+            pointer.forward,
+            (sphere.position - pointer.position).normalized,
+            Vector3.up);
+
+        string line = $"{Time.time:F2},{currentTrial.trialNumber},{currentTrial.distance},{currentTrial.targetSide},{angle:F2}";
+        File.AppendAllText(filePath, line + "\n");
+
+        Debug.Log($"[DataLogger] Recorded Trial {currentTrial.trialNumber} | Distance: {currentTrial.distance} | Side: {currentTrial.targetSide} | Angle: {angle:F2}");
     }
 }

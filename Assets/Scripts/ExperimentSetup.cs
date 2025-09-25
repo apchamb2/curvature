@@ -1,110 +1,89 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using TMPro;
+using UnityEngine.UI;
 
 public class ExperimentSetup : MonoBehaviour
 {
     [Header("UI References")]
     public TMP_InputField subjectIDField;
-    public Slider distanceSlider;
-    public TMP_Text distanceValueText;
-    public Button swapButton;
     public Button setHeightButton;
+    public Button startButton;
+
+    [Header("Trial Inputs")]
+    public TMP_InputField[] distanceFields = new TMP_InputField[5];
+    public TMP_Dropdown[] sideDropdowns = new TMP_Dropdown[5];
 
     [Header("References")]
-    public DataLogger dataLogger;      // for passing subject ID
-    public Transform triangle;         // parent prefab of pointer/sphere/vertex
-    public Transform pointer;          // pointer vertex
-    public Transform sphere;           // sphere vertex
-    public Transform hmdCamera;        // XR rig's Main Camera (HMD)
+    public DataLogger dataLogger;
+    public TrialManager trialManager;
+    public Transform trianglePrefab;
+    public Transform hmdCamera;
 
-    [Header("Triangle Settings")]
-    public float minDistance = 2f;
-    public float maxDistance = 20f;
-
-    private float baseEdgeLength;   // original prefab side length
-    private Vector3 baseScale;      // original prefab scale
-
-    private void Start()
+    public void Start()
     {
-        // Save the triangle's original size (assume prefab starts at base size in scene)
-        baseScale = triangle.localScale;
-
-        // Compute original edge length from pointer → sphere distance
-        if (pointer != null && sphere != null)
-        {
-            baseEdgeLength = Vector3.Distance(pointer.position, sphere.position);
-        }
-        else
-        {
-            baseEdgeLength = 2f; // fallback
-        }
-
-        // --- Subject ID field ---
         if (subjectIDField != null)
             subjectIDField.onEndEdit.AddListener(OnSubjectIDEntered);
 
-        // --- Distance slider ---
-        if (distanceSlider != null)
-        {
-            distanceSlider.minValue = minDistance;
-            distanceSlider.maxValue = maxDistance;
-            distanceSlider.onValueChanged.AddListener(OnDistanceChanged);
-
-            OnDistanceChanged(distanceSlider.value);
-        }
-
-        // --- Swap button ---
-        if (swapButton != null)
-            swapButton.onClick.AddListener(SwapPointerAndSphere);
-
-        // --- Set Height button ---
         if (setHeightButton != null)
             setHeightButton.onClick.AddListener(SetHeightFromHMD);
+
+        if (startButton != null)
+            startButton.onClick.AddListener(StartExperiment);
+
+        // Make sure dropdowns have Left/Right options
+        foreach (var dd in sideDropdowns)
+        {
+            if (dd != null && dd.options.Count == 0)
+            {
+                dd.options.Add(new TMP_Dropdown.OptionData("Left"));
+                dd.options.Add(new TMP_Dropdown.OptionData("Right"));
+            }
+        }
     }
 
     private void OnSubjectIDEntered(string newID)
     {
         if (dataLogger != null && !string.IsNullOrEmpty(newID))
-        {
             dataLogger.SetSubjectID(newID);
-        }
     }
 
-    private void OnDistanceChanged(float newDistance)
+    public void SetHeightFromHMD()
     {
-        if (distanceValueText != null)
-            distanceValueText.text = $"{newDistance:F1} m";
+        if (hmdCamera == null || trianglePrefab == null) return;
 
-        if (triangle != null && baseEdgeLength > 0f)
+        Vector3 pos = trianglePrefab.position;
+        trianglePrefab.position = new Vector3(pos.x, hmdCamera.position.y, pos.z);
+
+        Debug.Log($"[ExperimentSetup] Triangle set to HMD height: {hmdCamera.position.y:F2} m");
+    }
+
+    private void StartExperiment()
+    {
+        List<Trial> trials = new List<Trial>();
+
+        for (int i = 0; i < 5; i++)
         {
-            // Scale factor = desired edge length / original edge length
-            float scaleFactor = newDistance / baseEdgeLength;
-            triangle.localScale = baseScale * scaleFactor;
+            float distance = 5f;
+            string side = "Right";
+
+            if (distanceFields[i] != null)
+                float.TryParse(distanceFields[i].text, out distance);
+
+            if (sideDropdowns[i] != null)
+                side = sideDropdowns[i].options[sideDropdowns[i].value].text;
+
+            trials.Add(new Trial
+            {
+                trialNumber = i + 1,
+                distance = distance,
+                targetSide = side
+            });
         }
-    }
 
-    private void SwapPointerAndSphere()
-    {
-        if (pointer == null || sphere == null) return;
+        trialManager.InitializeTrials(trials);
+        trialManager.StartExperiment();
 
-        Vector3 tempPos = pointer.position;
-        Quaternion tempRot = pointer.rotation;
-
-        pointer.position = sphere.position;
-        pointer.rotation = sphere.rotation;
-
-        sphere.position = tempPos;
-        sphere.rotation = tempRot;
-    }
-
-    private void SetHeightFromHMD()
-    {
-        if (hmdCamera == null || triangle == null) return;
-
-        Vector3 trianglePos = triangle.position;
-        triangle.position = new Vector3(trianglePos.x, hmdCamera.position.y, trianglePos.z);
-
-        Debug.Log($"Triangle parent set to user height: {hmdCamera.position.y:F2} meters");
+        Debug.Log("[ExperimentSetup] Started experiment with 5 trials.");
     }
 }
