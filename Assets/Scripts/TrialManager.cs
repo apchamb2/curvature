@@ -6,9 +6,10 @@ public class TrialManager : MonoBehaviour
 {
     [Header("References")]
     public DataLogger dataLogger;
-    public Transform trianglePrefab;
+    public Transform trianglePrefab; // parent (barycenter of the triangle)
     public Transform pointer;
     public Transform sphere;
+    public Transform vertex;         // third point of triangle
 
     [Header("Input")]
     public InputActionProperty triggerAction; // bound to Trigger button
@@ -52,28 +53,43 @@ public class TrialManager : MonoBehaviour
         Trial trial = trials[currentTrialIndex];
         ApplyTrialSettings(trial);
 
+        // Tell DataLogger which trial is active
         if (dataLogger != null)
         {
             dataLogger.SetCurrentTrial(trial);
         }
 
-        Debug.Log($"[TrialManager] Started Trial {trial.trialNumber} " +
-                  $"| Distance: {trial.distance} | Side: {trial.targetSide}");
+        Debug.Log($"[TrialManager] Started Trial {trial.trialNumber} | Distance: {trial.distance} | Side: {trial.targetSide}");
     }
 
     private void ApplyTrialSettings(Trial trial)
     {
-        // Scale the triangle by distance
-        float scale = trial.distance / 2f; // adjust if your prefab assumes 2m base
-        trianglePrefab.localScale = new Vector3(scale, scale, scale);
+        float d = trial.distance;
 
-        // Place sphere on correct side (left/right relative to pointer)
-        Vector3 pointerPos = pointer.position;
-        Vector3 offset = pointer.right * trial.distance;
+        // Center is the barycenter (trianglePrefab position)
+        Vector3 center = trianglePrefab.position;
+
+        // Equilateral triangle layout (on XZ plane, pointing forward)
+        // Distance from barycenter to each vertex = d / √3
+        Vector3 forward = Vector3.forward * d / Mathf.Sqrt(3);
+        Vector3 left = Quaternion.Euler(0, -120, 0) * forward;
+        Vector3 right = Quaternion.Euler(0, 120, 0) * forward;
 
         if (trial.targetSide == "Left")
-            sphere.position = pointerPos - offset;
-        else
-            sphere.position = pointerPos + offset;
+        {
+            pointer.position = center + right;
+            sphere.position = center + left;
+        }
+        else // Right
+        {
+            pointer.position = center + left;
+            sphere.position = center + right;
+        }
+
+        // Vertex is always forward
+        if (vertex != null)
+        {
+            vertex.position = center + forward;
+        }
     }
 }
