@@ -2603,6 +2603,7 @@ MonoBehaviour:
   trianglePrefab: {fileID: 3782097903012917063}
   pointer: {fileID: 3782097903012917065}
   sphere: {fileID: 3782097903012917064}
+  vertex: {fileID: 1178407786}
   triggerAction:
     m_UseReference: 1
     m_Action:
@@ -3433,7 +3434,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6520291404937146767, guid: f6336ac4ac8b4d34bc5072418cdc62a0, type: 3}
       propertyPath: m_Enabled
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 9068281059075228377, guid: f6336ac4ac8b4d34bc5072418cdc62a0, type: 3}
       propertyPath: m_Target
@@ -7435,6 +7436,11 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1176908479}
   m_CullTransparentMesh: 1
+--- !u!4 &1178407786 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 497295286706146100, guid: 4503177bd59a46f44be27f644f8eccef, type: 3}
+  m_PrefabInstance: {fileID: 3782097903012917062}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1189627728
 GameObject:
   m_ObjectHideFlags: 0
