@@ -419,6 +419,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pointer: {fileID: 3782097903012917065}
   sphere: {fileID: 3782097903012917064}
+  triangleCenter: {fileID: 3782097903012917063}
+  trialManager: {fileID: 414313820}
   aButtonAction:
     m_UseReference: 1
     m_Action:

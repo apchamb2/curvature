@@ -51,11 +51,9 @@ public class ExperimentSetup : MonoBehaviour
             return;
         }
 
-        Vector3 pos = trianglePrefab.position;
-        trianglePrefab.position = new Vector3(pos.x, hmdCamera.position.y, pos.z);
+        trianglePrefab.position = new Vector3(0f, hmdCamera.position.y, 0f);
 
-        Vector3 originPos = xrOrigin.position;
-        xrOrigin.position = new Vector3(0f, originPos.y, 0f);
+        xrOrigin.position = new Vector3(0f, xrOrigin.position.y, 0f);
 
         Debug.Log($"[ExperimentSetup] Triangle set to HMD height: {hmdCamera.position.y:F2} m");
     }
@@ -64,16 +62,14 @@ public class ExperimentSetup : MonoBehaviour
     {
         if (experimentManager == null || trialManager == null)
         {
-            Debug.LogError("[ExperimentSetup] Missing references to ExperimentManager or TrialManager!");
+            Debug.LogError("[ExperimentSetup] Missing references to ExperimentManager or TrialManager");
             return;
         }
 
-        // Trial list is generated automatically in ExperimentManager.Start()
         trialManager.StartExperiment();
 
         Debug.Log("[ExperimentSetup] Experiment started with randomized 60 trials.");
 
-        // Optionally hide menu so it doesn’t cover the Game view
         if (menuCanvasGroup != null)
         {
             menuCanvasGroup.alpha = 0;
@@ -82,7 +78,6 @@ public class ExperimentSetup : MonoBehaviour
         }
     }
 
-    // Optional: Re-enable menu if you need to stop/reset during runtime
     public void ShowMenu(bool show)
     {
         if (menuCanvasGroup == null) return;
