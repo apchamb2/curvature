@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using TMPro;
+using Unity.XR.CoreUtils;
 using UnityEngine;
-using TMPro;
 using UnityEngine.UI;
 
 public class ExperimentSetup : MonoBehaviour
@@ -9,18 +9,17 @@ public class ExperimentSetup : MonoBehaviour
     public TMP_InputField subjectIDField;
     public Button setHeightButton;
     public Button startButton;
-
-    [Header("Trial Inputs")]
-    public TMP_InputField[] distanceFields = new TMP_InputField[5];
-    public TMP_Dropdown[] sideDropdowns = new TMP_Dropdown[5];
+    public CanvasGroup menuCanvasGroup; 
 
     [Header("References")]
     public DataLogger dataLogger;
     public TrialManager trialManager;
+    public ExperimentManager experimentManager;
     public Transform trianglePrefab;
     public Transform hmdCamera;
+    public Transform xrOrigin;
 
-    public void Start()
+    private void Start()
     {
         if (subjectIDField != null)
             subjectIDField.onEndEdit.AddListener(OnSubjectIDEntered);
@@ -30,60 +29,74 @@ public class ExperimentSetup : MonoBehaviour
 
         if (startButton != null)
             startButton.onClick.AddListener(StartExperiment);
-
-        // Make sure dropdowns have Left/Right options
-        foreach (var dd in sideDropdowns)
-        {
-            if (dd != null && dd.options.Count == 0)
-            {
-                dd.options.Add(new TMP_Dropdown.OptionData("Left"));
-                dd.options.Add(new TMP_Dropdown.OptionData("Right"));
-            }
-        }
     }
 
     private void OnSubjectIDEntered(string newID)
     {
-        if (dataLogger != null && !string.IsNullOrEmpty(newID))
-            dataLogger.SetSubjectID(newID);
+        if (!string.IsNullOrEmpty(newID))
+        {
+            if (dataLogger != null)
+                dataLogger.SetSubjectID(newID);
+
+            if (experimentManager != null)
+                experimentManager.subjectID = newID;
+        }
     }
 
     public void SetHeightFromHMD()
     {
-        if (hmdCamera == null || trianglePrefab == null) return;
+        if (hmdCamera == null || trianglePrefab == null || xrOrigin == null)
+        {
+            Debug.LogWarning("[ExperimentSetup] Missing HMD or triangle reference (SetHeight).");
+            return;
+        }
 
         Vector3 pos = trianglePrefab.position;
         trianglePrefab.position = new Vector3(pos.x, hmdCamera.position.y, pos.z);
+
+        Vector3 originPos = xrOrigin.position;
+        xrOrigin.position = new Vector3(0f, originPos.y, 0f);
 
         Debug.Log($"[ExperimentSetup] Triangle set to HMD height: {hmdCamera.position.y:F2} m");
     }
 
     private void StartExperiment()
     {
-        List<Trial> trials = new List<Trial>();
-
-        for (int i = 0; i < 5; i++)
+        if (experimentManager == null || trialManager == null)
         {
-            float distance = 5f;
-            string side = "Right";
-
-            if (distanceFields[i] != null)
-                float.TryParse(distanceFields[i].text, out distance);
-
-            if (sideDropdowns[i] != null)
-                side = sideDropdowns[i].options[sideDropdowns[i].value].text;
-
-            trials.Add(new Trial
-            {
-                trialNumber = i + 1,
-                distance = distance,
-                targetSide = side
-            });
+            Debug.LogError("[ExperimentSetup] Missing references to ExperimentManager or TrialManager!");
+            return;
         }
 
-        trialManager.InitializeTrials(trials);
+        // Trial list is generated automatically in ExperimentManager.Start()
         trialManager.StartExperiment();
 
-        Debug.Log("[ExperimentSetup] Started experiment with 5 trials.");
+        Debug.Log("[ExperimentSetup] Experiment started with randomized 60 trials.");
+
+        // Optionally hide menu so it doesn’t cover the Game view
+        if (menuCanvasGroup != null)
+        {
+            menuCanvasGroup.alpha = 0;
+            menuCanvasGroup.interactable = false;
+            menuCanvasGroup.blocksRaycasts = false;
+        }
     }
+
+    // Optional: Re-enable menu if you need to stop/reset during runtime
+    public void ShowMenu(bool show)
+    {
+        if (menuCanvasGroup == null) return;
+        menuCanvasGroup.alpha = show ? 1 : 0;
+        menuCanvasGroup.interactable = show;
+        menuCanvasGroup.blocksRaycasts = show;
+    }
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.M))
+        {
+            bool show = menuCanvasGroup != null && menuCanvasGroup.alpha < 0.5f;
+            ShowMenu(show);
+        }
+    }
+
 }

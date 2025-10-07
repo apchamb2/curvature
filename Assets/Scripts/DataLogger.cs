@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using System; 
@@ -7,7 +7,9 @@ public class DataLogger : MonoBehaviour
 {
     [Header("References")]
     public Transform pointer;    
-    public Transform sphere;    
+    public Transform sphere;
+    public Transform triangleCenter;
+    public TrialManager trialManager;
 
     [Header("Button Input")]
     public InputActionProperty aButtonAction; // subject presses A to record angle
@@ -18,32 +20,29 @@ public class DataLogger : MonoBehaviour
 
     private void Start()
     {
+        if (trialManager == null)
+            trialManager = FindFirstObjectByType<TrialManager>();
+
         SetupFile(subjectID);
+
+        if (aButtonAction.action != null)
+            aButtonAction.action.Enable();
     }
 
     private void Update()
     {
-        if (aButtonAction != null && aButtonAction.action != null)
-        {
-            if (aButtonAction.action.WasPressedThisFrame())
-            {
-                LogCurrentAngle();
-            }
-        }
+        if (aButtonAction.action != null && aButtonAction.action.WasPressedThisFrame())
+            LogCurrentAngle();
     }
 
-    /// <summary>
     /// Called from ExperimentSetup when subject ID is entered
-    /// </summary>
     public void SetSubjectID(string id)
     {
         subjectID = id;
         SetupFile(subjectID);
     }
 
-    /// <summary>
     /// Called from TrialManager when a new trial starts
-    /// </summary>
     public void SetCurrentTrial(Trial trial)
     {
         currentTrial = trial;
@@ -58,10 +57,9 @@ public class DataLogger : MonoBehaviour
 
         string timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
         string fileName = $"{id}_{timestamp}.csv";
-
         filePath = Path.Combine(folderPath, fileName);
 
-        string header = "Time,TrialNumber,Distance,Side,Angle";
+        string header = "Time,TrialNumber,ConditionID,Distance,Side,StartAngle,MeasuredAngle";
         File.WriteAllText(filePath, header + "\n");
 
         Debug.Log($"[DataLogger] Logging to: {filePath}");
@@ -77,22 +75,26 @@ public class DataLogger : MonoBehaviour
 #endif
     }
 
-    private void LogCurrentAngle() // calculates angle and appends to CSV
+    private void LogCurrentAngle()
     {
-        if (pointer == null || sphere == null || currentTrial == null)
+        if (pointer == null || sphere == null || currentTrial == null || triangleCenter == null)
         {
             Debug.LogWarning("[DataLogger] Missing references or trial info.");
             return;
         }
 
+        // --- 0° line = sphere→pointer; positive = toward user ---
         float angle = Vector3.SignedAngle(
-            pointer.forward,
-            (sphere.position - pointer.position).normalized,
-            Vector3.up);
+            (pointer.position - sphere.position).normalized,   // reference (0°)
+            pointer.forward.normalized,                       // pointer facing
+            (triangleCenter.position - pointer.position).normalized // axis (toward user)
+        );
 
-        string line = $"{Time.time:F2},{currentTrial.trialNumber},{currentTrial.distance},{currentTrial.targetSide},{angle:F2}";
+        string line = $"{Time.time:F2},{currentTrial.trialNumber},{currentTrial.conditionID},{currentTrial.distance},{currentTrial.targetSide},{currentTrial.startAngle:F2},{angle:F2}";
         File.AppendAllText(filePath, line + "\n");
 
-        Debug.Log($"[DataLogger] Recorded Trial {currentTrial.trialNumber} | Distance: {currentTrial.distance} | Side: {currentTrial.targetSide} | Angle: {angle:F2}");
+        Debug.Log($"[DataLogger] Recorded Trial {currentTrial.trialNumber} (Cond {currentTrial.conditionID}) | Dist: {currentTrial.distance} | Side: {currentTrial.targetSide} | Angle: {angle:F2}");
+
+        trialManager?.MarkTrialAsCompleted();
     }
 }

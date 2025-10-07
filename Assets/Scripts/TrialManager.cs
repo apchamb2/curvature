@@ -6,6 +6,7 @@ public class TrialManager : MonoBehaviour
 {
     [Header("References")]
     public DataLogger dataLogger;
+    public ExperimentManager experimentManager;
     public Transform trianglePrefab; // parent (barycenter of the triangle)
     public Transform pointer;
     public Transform sphere;
@@ -16,6 +17,7 @@ public class TrialManager : MonoBehaviour
 
     private List<Trial> trials;
     private int currentTrialIndex = -1;
+    private bool trialCompleted = false;
 
     private void Update()
     {
@@ -23,7 +25,14 @@ public class TrialManager : MonoBehaviour
         {
             if (triggerAction.action.WasPressedThisFrame())
             {
-                NextTrial();
+                if (trialCompleted)
+                {
+                    NextTrial();
+                }
+                else
+                {
+                    Debug.Log("[TrialManager] Trial not logged yet (have user press A first).");
+                }
             }
         }
     }
@@ -46,20 +55,31 @@ public class TrialManager : MonoBehaviour
 
         if (trials == null || currentTrialIndex >= trials.Count)
         {
-            Debug.Log("[TrialManager] Experiment finished!");
+            Debug.Log("[TrialManager] Experiment has ended");
             return;
         }
 
         Trial trial = trials[currentTrialIndex];
         ApplyTrialSettings(trial);
 
-        // Tell DataLogger which trial is active
+        if (experimentManager != null)
+        {
+            experimentManager.ApplyPointerRandomization(trial);
+        }
+        // Tells DataLogger which trial is active
         if (dataLogger != null)
         {
             dataLogger.SetCurrentTrial(trial);
         }
+        trialCompleted = false;
 
-        Debug.Log($"[TrialManager] Started Trial {trial.trialNumber} | Distance: {trial.distance} | Side: {trial.targetSide}");
+        Debug.Log($"[TrialManager] Trial {trial.trialNumber} (Condition {trial.conditionID}) | Distance: {trial.distance} | Side: {trial.targetSide}");
+    }
+
+    public void MarkTrialAsCompleted()
+    {
+        trialCompleted = true;
+        Debug.Log("[TrialManager] Data saved on button press");
     }
 
     private void ApplyTrialSettings(Trial trial)
