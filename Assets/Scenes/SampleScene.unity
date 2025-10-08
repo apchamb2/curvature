@@ -690,6 +690,7 @@ MonoBehaviour:
   pointer: {fileID: 3782097903012917065}
   sphere: {fileID: 3782097903012917064}
   vertex: {fileID: 1178407786}
+  hmdCamera: {fileID: 498803018}
   triggerAction:
     m_UseReference: 1
     m_Action:
@@ -702,6 +703,9 @@ MonoBehaviour:
       m_SingletonActionBindings: []
       m_Flags: 0
     m_Reference: {fileID: 83097790271614945, guid: c348712bda248c246b8c49b3db54643f, type: 3}
+  visualAngleDegrees: 10
+  baseSphereSize: 0.5
+  basePointerSize: 0.5
 --- !u!4 &414313821
 Transform:
   m_ObjectHideFlags: 0
@@ -2230,7 +2234,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4028535188698605279, guid: 4503177bd59a46f44be27f644f8eccef, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0
+      value: 2.7
       objectReference: {fileID: 0}
     - target: {fileID: 4028535188698605279, guid: 4503177bd59a46f44be27f644f8eccef, type: 3}
       propertyPath: m_LocalPosition.z
@@ -2264,6 +2268,18 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4566316871285920131, guid: 4503177bd59a46f44be27f644f8eccef, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4566316871285920131, guid: 4503177bd59a46f44be27f644f8eccef, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4566316871285920131, guid: 4503177bd59a46f44be27f644f8eccef, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6979721062491495575, guid: 4503177bd59a46f44be27f644f8eccef, type: 3}
       propertyPath: m_Name
       value: Sphere
@@ -2271,6 +2287,18 @@ PrefabInstance:
     - target: {fileID: 7739759902520009667, guid: 4503177bd59a46f44be27f644f8eccef, type: 3}
       propertyPath: m_Name
       value: Vertex
+      objectReference: {fileID: 0}
+    - target: {fileID: 7900943472989053079, guid: 4503177bd59a46f44be27f644f8eccef, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7900943472989053079, guid: 4503177bd59a46f44be27f644f8eccef, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7900943472989053079, guid: 4503177bd59a46f44be27f644f8eccef, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

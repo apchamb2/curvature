@@ -7,13 +7,20 @@ public class TrialManager : MonoBehaviour
     [Header("References")]
     public DataLogger dataLogger;
     public ExperimentManager experimentManager;
-    public Transform trianglePrefab; // parent (barycenter of the triangle)
+    public Transform trianglePrefab; // parent ( to find barycenter of the triangle)
     public Transform pointer;
     public Transform sphere;
-    public Transform vertex;         // third point of triangle
+    public Transform vertex;
+    public Transform hmdCamera;
 
     [Header("Input")]
-    public InputActionProperty triggerAction; // bound to Trigger button
+    public InputActionProperty triggerAction;
+
+    [Header("Visual Angle Scaling")]
+    [Range(1f, 60f)]
+    public float visualAngleDegrees = 10f;
+    public float baseSphereSize = 0.5f;      // diameter of sphere at localScale = 1 (prefab actual size is 0.5m)
+    public float basePointerSize = 0.5f;        // same as above but witht the cube
 
     private List<Trial> trials;
     private int currentTrialIndex = -1;
@@ -66,7 +73,8 @@ public class TrialManager : MonoBehaviour
         {
             experimentManager.ApplyPointerRandomization(trial);
         }
-        // Tells DataLogger which trial is active
+        ScaleToVisualAngle();
+
         if (dataLogger != null)
         {
             dataLogger.SetCurrentTrial(trial);
@@ -111,5 +119,27 @@ public class TrialManager : MonoBehaviour
         {
             vertex.position = center + forward;
         }
+        
+    }
+    private void ScaleToVisualAngle()
+    {
+        if (hmdCamera == null || pointer == null || sphere == null || vertex == null)
+        {
+            Debug.LogWarning("[TrialManager] Missing references for scaling.");
+            return;
+        }
+        float thetaRad = visualAngleDegrees * Mathf.Deg2Rad * 0.5f; // half angle in radians
+
+        float dPointer = Vector3.Distance(pointer.position, hmdCamera.position);
+        float dSphere = Vector3.Distance(sphere.position, hmdCamera.position);
+        float dVertex = Vector3.Distance(vertex.position, hmdCamera.position);
+
+        float scalePointer = 2f * dPointer * Mathf.Tan(thetaRad) / basePointerSize;
+        float scaleSphere = 2f * dSphere * Mathf.Tan(thetaRad) / baseSphereSize;
+        float scaleVertex = 2f * dVertex * Mathf.Tan(thetaRad) / baseSphereSize;
+
+        pointer.localScale = Vector3.one * scalePointer;
+        sphere.localScale = Vector3.one * scaleSphere;
+        vertex.localScale = Vector3.one * scaleVertex;
     }
 }
