@@ -10,6 +10,7 @@ public class DataLogger : MonoBehaviour
     public Transform sphere;
     public Transform triangleCenter;
     public TrialManager trialManager;
+    public Transform hmdCamera;
 
     [Header("Button Input")]
     public InputActionProperty aButtonAction; // subject presses A to record angle
@@ -59,7 +60,7 @@ public class DataLogger : MonoBehaviour
         string fileName = $"{id}_{timestamp}.csv";
         filePath = Path.Combine(folderPath, fileName);
 
-        string header = "Time,TrialNumber,ConditionID,Distance,Side,StartAngle,MeasuredAngle";
+        string header = "Time,TrialNumber,ConditionID,Distance,Side,StartAngle,MeasuredAngle,HMDHeight";
         File.WriteAllText(filePath, header + "\n");
 
         Debug.Log($"[DataLogger] Logging to: {filePath}");
@@ -90,10 +91,12 @@ public class DataLogger : MonoBehaviour
             (triangleCenter.position - pointer.position).normalized // axis (toward user)
         );
 
-        string line = $"{Time.time:F2},{currentTrial.trialNumber},{currentTrial.conditionID},{currentTrial.distance},{currentTrial.targetSide},{currentTrial.startAngle:F2},{angle:F2}";
+        float hmdHeight = hmdCamera != null ? hmdCamera.position.y : -1f;
+
+        string line = $"{Time.time:F2},{currentTrial.trialNumber},{currentTrial.conditionID},{currentTrial.distance},{currentTrial.targetSide},{currentTrial.startAngle:F2},{angle:F2},{hmdHeight:F3}";
         File.AppendAllText(filePath, line + "\n");
 
-        Debug.Log($"[DataLogger] Recorded Trial {currentTrial.trialNumber} (Cond {currentTrial.conditionID}) | Dist: {currentTrial.distance} | Side: {currentTrial.targetSide} | Angle: {angle:F2}");
+        Debug.Log($"[DataLogger] Trial {currentTrial.trialNumber} | Cond {currentTrial.conditionID} | Dist {currentTrial.distance} | Side {currentTrial.targetSide} | Angle {angle:F2} | HMD Y: {hmdHeight:F3}");
 
         trialManager?.MarkTrialAsCompleted();
     }
