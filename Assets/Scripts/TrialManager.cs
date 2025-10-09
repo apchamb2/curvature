@@ -94,7 +94,7 @@ public class TrialManager : MonoBehaviour
     {
         float d = trial.distance;
 
-        // Center is the barycenter (trianglePrefab position)
+        // Center is the barycenter (trianglePrefab)
         Vector3 center = trianglePrefab.position;
 
         // Equilateral triangle layout (on XZ plane, pointing forward)

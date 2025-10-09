@@ -83,21 +83,27 @@ public class DataLogger : MonoBehaviour
             Debug.LogWarning("[DataLogger] Missing references or trial info.");
             return;
         }
+        
+        Vector3 referenceDir = (sphere.position - pointer.position).normalized;  // 0° reference: line from pointer → sphere
+        Vector3 measuredDir = pointer.right.normalized;  // using pointer.forward gives incorrect measures by 90°, pointer position visually points to the local 'right' side (prefab issues again)
+        Vector3 upAxis = -Vector3.up;       //toward participant = negative, away = positive
+        float angle = Vector3.SignedAngle(referenceDir, measuredDir, upAxis);
 
-        // --- 0° line = sphere→pointer; positive = toward user ---
-        float angle = Vector3.SignedAngle(
-            (pointer.position - sphere.position).normalized,   // reference (0°)
-            pointer.forward.normalized,                       // pointer facing
-            (triangleCenter.position - pointer.position).normalized // axis (toward user)
-        );
+        // invert sign for left-side trials for consistent 'positive angle is towards participant'
+        if (currentTrial.targetSide == "Left")
+            angle *= -1f;
 
-        float hmdHeight = hmdCamera != null ? hmdCamera.position.y : -1f;
+        // HMD height logging
+        float hmdHeight = -1f;
+        if (hmdCamera != null)
+            hmdHeight = hmdCamera.position.y;
+        else
+            Debug.LogWarning("[DataLogger] hmdCamera not assigned");
 
         string line = $"{Time.time:F2},{currentTrial.trialNumber},{currentTrial.conditionID},{currentTrial.distance},{currentTrial.targetSide},{currentTrial.startAngle:F2},{angle:F2},{hmdHeight:F3}";
         File.AppendAllText(filePath, line + "\n");
 
-        Debug.Log($"[DataLogger] Trial {currentTrial.trialNumber} | Cond {currentTrial.conditionID} | Dist {currentTrial.distance} | Side {currentTrial.targetSide} | Angle {angle:F2} | HMD Y: {hmdHeight:F3}");
-
+        Debug.Log($"[DataLogger] Trial {currentTrial.trialNumber} | Side {currentTrial.targetSide} | Angle {angle:F2}° | HMD Y: {hmdHeight:F3}m");
         trialManager?.MarkTrialAsCompleted();
     }
 }
