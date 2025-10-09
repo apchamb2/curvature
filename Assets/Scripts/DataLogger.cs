@@ -24,8 +24,6 @@ public class DataLogger : MonoBehaviour
         if (trialManager == null)
             trialManager = FindFirstObjectByType<TrialManager>();
 
-        SetupFile(subjectID);
-
         if (aButtonAction.action != null)
             aButtonAction.action.Enable();
     }
@@ -66,14 +64,9 @@ public class DataLogger : MonoBehaviour
         Debug.Log($"[DataLogger] Logging to: {filePath}");
     }
 
-    private string GetLogFolder()  // creates data folder on desktop or persistent path for Quest
+    private string GetLogFolder()  // creates data folder on desktop
     {
-#if UNITY_ANDROID && !UNITY_EDITOR
-            // Safe path for Quest
-            return Path.Combine(Application.persistentDataPath, "Data");
-#else
         return Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.Desktop), "ExperimentData");
-#endif
     }
 
     private void LogCurrentAngle()
