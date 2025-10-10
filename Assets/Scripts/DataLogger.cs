@@ -82,9 +82,9 @@ public class DataLogger : MonoBehaviour
         Vector3 upAxis = -Vector3.up;       //toward participant = negative, away = positive
         float angle = Vector3.SignedAngle(referenceDir, measuredDir, upAxis);
 
-        // invert sign for left-side trials for consistent 'positive angle is towards participant'
-        if (currentTrial.targetSide == "Left")
-            angle *= -1f;
+        // invert sign for left-side trials for positive angle toward participant
+        //if (currentTrial.targetSide == "Left")
+        //    angle *= -1f;
 
         // HMD height logging
         float hmdHeight = -1f;
