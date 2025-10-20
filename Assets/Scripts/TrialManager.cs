@@ -73,7 +73,7 @@ public class TrialManager : MonoBehaviour
         {
             experimentManager.ApplyPointerRandomization(trial);
         }
-        ScaleToVisualAngle();
+        // ScaleToVisualAngle(); 
 
         if (dataLogger != null)
         {
@@ -121,25 +121,25 @@ public class TrialManager : MonoBehaviour
         }
         
     }
-    private void ScaleToVisualAngle()
-    {
-        if (hmdCamera == null || pointer == null || sphere == null || vertex == null)
-        {
-            Debug.LogWarning("[TrialManager] Missing references for scaling.");
-            return;
-        }
-        float thetaRad = visualAngleDegrees * Mathf.Deg2Rad * 0.5f; // half angle in radians
+    //private void ScaleToVisualAngle()
+    //{
+    //    if (hmdCamera == null || pointer == null || sphere == null || vertex == null)
+    //    {
+    //        Debug.LogWarning("[TrialManager] Missing references for scaling.");
+    //        return;
+    //    }
+    //    float thetaRad = visualAngleDegrees * Mathf.Deg2Rad * 0.5f; // half angle in radians
 
-        float dPointer = Vector3.Distance(pointer.position, hmdCamera.position);
-        float dSphere = Vector3.Distance(sphere.position, hmdCamera.position);
-        float dVertex = Vector3.Distance(vertex.position, hmdCamera.position);
+    //    float dPointer = Vector3.Distance(pointer.position, hmdCamera.position);
+    //    float dSphere = Vector3.Distance(sphere.position, hmdCamera.position);
+    //    float dVertex = Vector3.Distance(vertex.position, hmdCamera.position);
 
-        float scalePointer = 2f * dPointer * Mathf.Tan(thetaRad) / basePointerSize;
-        float scaleSphere = 2f * dSphere * Mathf.Tan(thetaRad) / baseSphereSize;
-        float scaleVertex = 2f * dVertex * Mathf.Tan(thetaRad) / baseSphereSize;
+    //    float scalePointer = 2f * dPointer * Mathf.Tan(thetaRad) / basePointerSize;
+    //    float scaleSphere = 2f * dSphere * Mathf.Tan(thetaRad) / baseSphereSize;
+    //    float scaleVertex = 2f * dVertex * Mathf.Tan(thetaRad) / baseSphereSize;
 
-        pointer.localScale = Vector3.one * scalePointer;
-        sphere.localScale = Vector3.one * scaleSphere;
-        vertex.localScale = Vector3.one * scaleVertex;
-    }
+    //    pointer.localScale = Vector3.one * scalePointer;
+    //    sphere.localScale = Vector3.one * scaleSphere;
+    //    vertex.localScale = Vector3.one * scaleVertex;
+    //}
 }
