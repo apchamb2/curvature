@@ -16,11 +16,11 @@ public class TrialManager : MonoBehaviour
     [Header("Input")]
     public InputActionProperty triggerAction;
 
-    [Header("Visual Angle Scaling")]
-    [Range(1f, 60f)]
-    public float visualAngleDegrees = 10f;
-    public float baseSphereSize = 0.5f;      // diameter of sphere at localScale = 1 (prefab actual size is 0.5m)
-    public float basePointerSize = 0.5f;        // same as above but witht the cube
+    //[Header("Visual Angle Scaling")]
+    //[Range(1f, 60f)]
+    //public float visualAngleDegrees = 10f;
+    //public float baseSphereSize = 0.5f;      // diameter of sphere at localScale = 1 (prefab actual size is 0.5m)
+    //public float basePointerSize = 0.5f;        // same as above but witht the cube
 
     private List<Trial> trials;
     private int currentTrialIndex = -1;

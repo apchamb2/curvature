@@ -58,7 +58,7 @@ public class DataLogger : MonoBehaviour
         string fileName = $"{id}_{timestamp}.csv";
         filePath = Path.Combine(folderPath, fileName);
 
-        string header = "Time,TrialNumber,ConditionID,Distance,Side,StartAngle,MeasuredAngle,HMDHeight";
+        string header = "Time,TrialNumber,ConditionID,Distance,Sphere Side,StartAngle,MeasuredAngle,HMDHeight";
         File.WriteAllText(filePath, header + "\n");
 
         Debug.Log($"[DataLogger] Logging to: {filePath}");
@@ -96,7 +96,7 @@ public class DataLogger : MonoBehaviour
         string line = $"{Time.time:F2},{currentTrial.trialNumber},{currentTrial.conditionID},{currentTrial.distance},{currentTrial.targetSide},{currentTrial.startAngle:F2},{angle:F2},{hmdHeight:F3}";
         File.AppendAllText(filePath, line + "\n");
 
-        Debug.Log($"[DataLogger] Trial {currentTrial.trialNumber} | Side {currentTrial.targetSide} | Angle {angle:F2}° | HMD Y: {hmdHeight:F3}m");
+        Debug.Log($"[DataLogger] Trial {currentTrial.trialNumber} | Sphere Side {currentTrial.targetSide} | Angle {angle:F2}° | HMD Y: {hmdHeight:F3}m");
         trialManager?.MarkTrialAsCompleted();
     }
 }
