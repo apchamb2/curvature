@@ -2,6 +2,8 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using System; 
+using UnityEngine.XR;          // for haptics
+using UnityEngine.UI;  
 
 public class DataLogger : MonoBehaviour
 {
@@ -14,6 +16,22 @@ public class DataLogger : MonoBehaviour
 
     [Header("Button Input")]
     public InputActionProperty aButtonAction; // subject presses A to record angle
+
+    [Header("Haptics (Right Controller)")]
+    [Range(0f, 1f)] public float hapticAmplitude = 0.6f;
+    public float hapticDuration = 0.08f;
+
+    private void TriggerRightHaptics(float amplitude, float duration)
+    {
+        var device = InputDevices.GetDeviceAtXRNode(XRNode.RightHand);
+
+        if (!device.isValid) return;
+
+        if (device.TryGetHapticCapabilities(out var caps) && caps.supportsImpulse)
+        {
+            device.SendHapticImpulse(0u, amplitude, duration);
+        }
+    }
 
     private string subjectID = "default_subject";
     private string filePath;
