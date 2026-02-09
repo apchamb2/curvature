@@ -77,13 +77,12 @@ public class ExperimentManager : MonoBehaviour
     {
         if (pointer == null)
         {
-            Debug.LogWarning("[ExperimentManager] Pointer not assigned!");
+            Debug.LogWarning("[ExperimentManager] Pointer not assigned");
             return;
         }
 
-        float randomAngle = (float)rng.NextDouble() * 360f;
+        float randomAngle = 30f + (float)rng.NextDouble() * 300f; // excludes 0±30
         pointer.rotation = Quaternion.Euler(0f, randomAngle, 0f);
-
         trial.startAngle = randomAngle;
     }
 }
