@@ -28,9 +28,13 @@ public class TrialManager : MonoBehaviour
 
     private void Update()
     {
-        if (triggerAction != null && triggerAction.action != null)
+        if (triggerAction != null && triggerAction.action != null && triggerAction.action.WasPressedThisFrame())
         {
-            if (triggerAction.action.WasPressedThisFrame())
+            if (trialCompleted)
+            {
+                NextTrial();
+            }
+            else
             {
                 if (trialCompleted)
                 {
@@ -38,7 +42,10 @@ public class TrialManager : MonoBehaviour
                 }
                 else
                 {
-                    Debug.Log("[TrialManager] Trial not logged yet (have user press A first).");
+                    if (dataLogger != null)
+                        dataLogger.FinalizeTrialAndWrite();  // this will call MarkTrialAsCompleted() on success
+                    else
+                        Debug.LogWarning("[TrialManager] DataLogger not assigned.");
                 }
             }
         }
