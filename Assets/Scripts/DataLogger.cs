@@ -36,7 +36,7 @@ public class DataLogger : MonoBehaviour
     private string subjectID = "default_subject";
     private string filePath;
     private Trial currentTrial;
-
+    public bool practiceMode = false; 
     private bool hasSavedAngle = false;
     private float savedAngle = 0f;
     private float savedAngleTime = 0f;
@@ -121,7 +121,7 @@ public class DataLogger : MonoBehaviour
         Debug.Log($"[DataLogger] Saved angle {savedAngle:F2}° at time {savedAngleTime:F2}s for Trial {currentTrial.trialNumber}");
     }
 
-    private void FinalizeTrialAndWrite()
+    public void FinalizeTrialAndWrite()
     {
         if (pointer == null || sphere == null || currentTrial == null || triangleCenter == null)
         {
@@ -129,6 +129,12 @@ public class DataLogger : MonoBehaviour
             return;
         }
         
+        if (practiceMode) // skip logging for practice trials
+        {
+            trialManager?.MarkTrialAsCompleted();
+            return;
+        }
+
         if (!hasSavedAngle)
         {
             Debug.LogWarning("[DataLogger] No angle saved yet. Please press A to save angle before finalizing trial.");
