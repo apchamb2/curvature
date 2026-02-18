@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -27,6 +28,12 @@ public class TrialManager : MonoBehaviour
     [Min(0)] public int practiceTrialCount = 3;
     public List<float> practiceDistances = new List<float> { 6f, 6f, 6f }; // can be length 1 or >= count
     public bool randomizePracticeSide = true;
+
+    public event Action<bool, int, int> OnTrialCounterChanged; // args: (inPractice, currentHumanIndex, totalTrials)
+
+    public int TotalRealTrials => trials != null ? trials.Count : 0;
+    public int TotalPracticeTrials => (enablePractice && practiceTrialCount > 0) ? practiceTrialCount : 0;
+
 
     private List<Trial> trials;
     private int currentTrialIndex = -1;
@@ -78,6 +85,7 @@ public class TrialManager : MonoBehaviour
         practiceIndex = 0;
         
         currentTrialIndex = -1;
+
         NextTrial();
     }
 
@@ -98,14 +106,12 @@ public class TrialManager : MonoBehaviour
 
             Trial practiceTrial = MakePracticeTrial(practiceIndex);
 
-            // Apply same environment logic
             ApplyTrialSettings(practiceTrial);
 
-            // Same pointer randomization logic
             if (experimentManager != null)
                 experimentManager.ApplyPointerRandomization(practiceTrial);
 
-            // Tell DataLogger this is practice (skip CSV)
+            // Skip CSV for practice trials
             if (dataLogger != null)
             {
                 dataLogger.practiceMode = true;
@@ -115,6 +121,7 @@ public class TrialManager : MonoBehaviour
             trialCompleted = false;
 
             Debug.Log($"[TrialManager] PRACTICE {practiceIndex + 1}/{practiceTrialCount} | Distance: {practiceTrial.distance} | Side: {practiceTrial.targetSide}");
+            OnTrialCounterChanged?.Invoke(true, practiceIndex + 1, practiceTrialCount);
             practiceIndex++;
             return;
         }
@@ -125,6 +132,9 @@ public class TrialManager : MonoBehaviour
         if (trials == null || currentTrialIndex >= trials.Count)
         {
             Debug.Log("[TrialManager] Experiment has ended");
+            int total = TotalRealTrials;
+            int currentHuman = total > 0 ? total : 0;
+            OnTrialCounterChanged?.Invoke(false, currentHuman, total);
             return;
         }
 
@@ -142,6 +152,7 @@ public class TrialManager : MonoBehaviour
         trialCompleted = false;
 
         Debug.Log($"[TrialManager] Trial {trial.trialNumber} (Condition {trial.conditionID}) | Distance: {trial.distance} | Side: {trial.targetSide}");
+        OnTrialCounterChanged?.Invoke(false, currentTrialIndex + 1, trials.Count);
     }
 
     public void MarkTrialAsCompleted()
@@ -163,7 +174,7 @@ public class TrialManager : MonoBehaviour
 
         string side;
         if (randomizePracticeSide)
-            side = (Random.value < 0.5f) ? "Left" : "Right";
+            side = (UnityEngine.Random.value < 0.5f) ? "Left" : "Right";
         else
             side = "Left";
 

@@ -11,6 +11,9 @@ public class ExperimentSetup : MonoBehaviour
     public Button startButton;
     public CanvasGroup menuCanvasGroup; 
 
+    [Header("Trial Counter UI")]
+    public TMP_Text trialCounterText;
+
     [Header("References")]
     public DataLogger dataLogger;
     public TrialManager trialManager;
@@ -29,6 +32,30 @@ public class ExperimentSetup : MonoBehaviour
 
         if (startButton != null)
             startButton.onClick.AddListener(StartExperiment);
+
+        if (trialManager != null)
+            trialManager.OnTrialCounterChanged += HandleTrialCounterChanged;
+    }
+
+    private void OnDestroy()
+    {
+        if (trialManager != null)
+            trialManager.OnTrialCounterChanged -= HandleTrialCounterChanged;   
+    }
+
+    private void HandleTrialCounterChanged(bool inPractice, int current, int total)
+    {
+        if (trialCounterText == null) return;
+
+        if (total <= 0)
+        {
+            trialCounterText.text = inPractice ? "Practice -/-" : "Trial -/-";
+            return;
+        }
+
+        trialCounterText.text = inPractice
+            ? $"Practice {current}/{total}"
+            : $"Trial {current}/{total}";
     }
 
     private void OnSubjectIDEntered(string newID)
@@ -68,14 +95,7 @@ public class ExperimentSetup : MonoBehaviour
 
         trialManager.StartExperiment();
 
-        Debug.Log("[ExperimentSetup] Experiment started with randomized 60 trials.");
-
-        if (menuCanvasGroup != null)
-        {
-            menuCanvasGroup.alpha = 0;
-            menuCanvasGroup.interactable = false;
-            menuCanvasGroup.blocksRaycasts = false;
-        }
+        Debug.Log("[ExperimentSetup] Experiment started.");
     }
 
     public void ShowMenu(bool show)
