@@ -1585,7 +1585,7 @@ MonoBehaviour:
   - 10
   - 15
   - 20
-  repsPerCell: 3
+  repsPerCell: 5
 --- !u!4 &1059812231
 Transform:
   m_ObjectHideFlags: 0
