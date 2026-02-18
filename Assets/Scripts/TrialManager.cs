@@ -22,13 +22,33 @@ public class TrialManager : MonoBehaviour
     //public float baseSphereSize = 0.5f;      // diameter of sphere at localScale = 1 (prefab actual size is 0.5m)
     //public float basePointerSize = 0.5f;        // same as above but witht the cube
 
+    [Header("Practice")]
+    public bool enablePractice = true;
+    [Min(0)] public int practiceTrialCount = 3;
+    public List<float> practiceDistances = new List<float> { 6f, 6f, 6f }; // can be length 1 or >= count
+    public bool randomizePracticeSide = true;
+
     private List<Trial> trials;
     private int currentTrialIndex = -1;
     private bool trialCompleted = false;
 
+    // practice state
+    private bool inPractice = false;
+    private int practiceIndex = 0;
+
+    private void Start()
+    {
+        // Start with practice phase if enabled
+        inPractice = enablePractice && practiceTrialCount > 0;
+        practiceIndex = 0;
+    }
+
+
     private void Update()
     {
-        if (triggerAction != null && triggerAction.action != null && triggerAction.action.WasPressedThisFrame())
+        if (triggerAction == null || triggerAction.action == null) return;
+
+        if (triggerAction.action.WasPressedThisFrame())
         {
             if (trialCompleted)
             {
@@ -36,17 +56,10 @@ public class TrialManager : MonoBehaviour
             }
             else
             {
-                if (trialCompleted)
-                {
-                    NextTrial();
-                }
+                if (dataLogger != null)
+                    dataLogger.FinalizeTrialAndWrite(); 
                 else
-                {
-                    if (dataLogger != null)
-                        dataLogger.FinalizeTrialAndWrite();  // this will call MarkTrialAsCompleted() on success
-                    else
-                        Debug.LogWarning("[TrialManager] DataLogger not assigned.");
-                }
+                    Debug.LogWarning("[TrialManager] DataLogger not assigned.");
             }
         }
     }
@@ -59,12 +72,54 @@ public class TrialManager : MonoBehaviour
 
     public void StartExperiment()
     {
+        trialCompleted = false;
+
+        inPractice = enablePractice && practiceTrialCount > 0;
+        practiceIndex = 0;
+        
         currentTrialIndex = -1;
         NextTrial();
     }
 
     private void NextTrial()
     {
+      // PRACTICE
+        if (inPractice)
+        {
+            if (practiceIndex >= practiceTrialCount)
+            {
+                // switch to real trials
+                inPractice = false;
+                currentTrialIndex = -1;
+                Debug.Log("[TrialManager] Practice finished. Starting real experiment.");
+                NextTrial();
+                return;
+            }
+
+            Trial practiceTrial = MakePracticeTrial(practiceIndex);
+
+            // Apply same environment logic
+            ApplyTrialSettings(practiceTrial);
+
+            // Same pointer randomization logic
+            if (experimentManager != null)
+                experimentManager.ApplyPointerRandomization(practiceTrial);
+
+            // Tell DataLogger this is practice (skip CSV)
+            if (dataLogger != null)
+            {
+                dataLogger.practiceMode = true;
+                dataLogger.SetCurrentTrial(practiceTrial);
+            }
+
+            trialCompleted = false;
+
+            Debug.Log($"[TrialManager] PRACTICE {practiceIndex + 1}/{practiceTrialCount} | Distance: {practiceTrial.distance} | Side: {practiceTrial.targetSide}");
+            practiceIndex++;
+            return;
+        }
+
+        // REAL Trials
         currentTrialIndex++;
 
         if (trials == null || currentTrialIndex >= trials.Count)
@@ -77,13 +132,11 @@ public class TrialManager : MonoBehaviour
         ApplyTrialSettings(trial);
 
         if (experimentManager != null)
-        {
             experimentManager.ApplyPointerRandomization(trial);
-        }
-        // ScaleToVisualAngle(); 
 
         if (dataLogger != null)
         {
+            dataLogger.practiceMode = false; 
             dataLogger.SetCurrentTrial(trial);
         }
         trialCompleted = false;
@@ -94,7 +147,34 @@ public class TrialManager : MonoBehaviour
     public void MarkTrialAsCompleted()
     {
         trialCompleted = true;
-        Debug.Log("[TrialManager] Data saved on button press");
+        Debug.Log("[TrialManager] Data saved");
+    }
+
+    private Trial MakePracticeTrial(int index)
+    {
+        float d;
+
+        if (practiceDistances == null || practiceDistances.Count == 0)
+            d = 6f;
+        else if (practiceDistances.Count == 1)
+            d = practiceDistances[0];
+        else
+            d = practiceDistances[Mathf.Clamp(index, 0, practiceDistances.Count - 1)];
+
+        string side;
+        if (randomizePracticeSide)
+            side = (Random.value < 0.5f) ? "Left" : "Right";
+        else
+            side = "Left";
+
+        return new Trial
+        {
+            conditionID = 0,
+            trialNumber = 0,
+            distance = d,
+            targetSide = side,
+            startAngle = 0f
+        };
     }
 
     private void ApplyTrialSettings(Trial trial)
