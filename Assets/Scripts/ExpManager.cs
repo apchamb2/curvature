@@ -11,12 +11,10 @@ public class ExperimentManager : MonoBehaviour
     public string subjectID = "P001";
 
     [Header("Distances (meters)")]
-    public int minDistance = 2;
-    public int maxDistance = 20;
-    public int step = 2;
+    public List<float> distances = new List<float> { 2f, 4f, 6f, 8f, 10f, 15f, 20f };
 
     [Header("Repetitions per (distance, side) cell")]
-    [Min(1)] public int repsPerCell = 3;
+    [Min(1)] public int repsPerCell = 5;
 
     private List<Trial> trials;
     private System.Random rng;
@@ -34,10 +32,11 @@ public class ExperimentManager : MonoBehaviour
     private void GenerateTrials()
     {
         trials = new List<Trial>();
-        var distances = Enumerable.Range(0, ((maxDistance - minDistance) / step) + 1)
-                                  .Select(i => minDistance + i * step)
-                                  .Select(d => (float)d);
-
+        if (distances == null || distances.Count == 0)
+        {
+            Debug.LogError("[ExperimentManager] Distances list is empty!");
+            return;
+        }
         int conditionID = 1;
 
         foreach (float d in distances)
@@ -80,9 +79,24 @@ public class ExperimentManager : MonoBehaviour
             Debug.LogWarning("[ExperimentManager] Pointer not assigned");
             return;
         }
+        const float exclusion = 30f; // Exclude angles within ±30° of the target side
+        
+        // Compute zero line (pointer -> sphere direction)
+        Vector3 toSphere = (trialManager.sphere.position - pointer.position).normalized;
+        toSphere.y = 0f;
+        toSphere.Normalize();
 
-        float randomAngle = 30f + (float)rng.NextDouble() * 300f; // excludes 0±30
-        pointer.rotation = Quaternion.Euler(0f, randomAngle, 0f);
-        trial.startAngle = randomAngle;
+        // Convert to yaw angle
+        float zeroYaw = Mathf.Atan2(toSphere.x, toSphere.z) * Mathf.Rad2Deg;
+        float randomYaw;
+
+        do
+        {
+            randomYaw = (float)rng.NextDouble() * 360f;
+        }
+        while (Mathf.Abs(Mathf.DeltaAngle(randomYaw, zeroYaw)) < exclusion);
+
+        pointer.rotation = Quaternion.Euler(0f, randomYaw, 0f);
+        trial.startAngle = randomYaw;
     }
 }
