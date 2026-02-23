@@ -11,6 +11,10 @@ public class ExperimentSetup : MonoBehaviour
     public Button startButton;
     public CanvasGroup menuCanvasGroup; 
 
+    [Header("Trial Counter UI")]
+    public TMP_Text trialCounterText;
+
+
     [Header("References")]
     public DataLogger dataLogger;
     public TrialManager trialManager;
@@ -28,9 +32,37 @@ public class ExperimentSetup : MonoBehaviour
             setHeightButton.onClick.AddListener(SetHeightFromHMD);
 
         if (startButton != null)
+        {
+            startButton.onClick.RemoveListener(StartExperiment);
             startButton.onClick.AddListener(StartExperiment);
+        }
+
+        if (trialManager != null)
+        {
+            trialManager.OnTrialCounterChanged -= HandleTrialCounterChanged;
+            trialManager.OnTrialCounterChanged += HandleTrialCounterChanged;
+        }
+    }
+    private void OnDestroy()
+    {
+        if (trialManager != null)
+            trialManager.OnTrialCounterChanged -= HandleTrialCounterChanged;   
     }
 
+    private void HandleTrialCounterChanged(bool inPractice, int current, int total)
+    {
+        if (trialCounterText == null) return;
+
+        if (total <= 0)
+        {
+            trialCounterText.text = inPractice ? "Practice -/-" : "Trial -/-";
+            return;
+        }
+
+        trialCounterText.text = inPractice
+            ? $"Practice {current}/{total}"
+            : $"Trial {current}/{total}";
+    }
     private void OnSubjectIDEntered(string newID)
     {
         if (!string.IsNullOrEmpty(newID))
@@ -51,11 +83,22 @@ public class ExperimentSetup : MonoBehaviour
             return;
         }
 
-        trianglePrefab.position = new Vector3(0f, hmdCamera.position.y, 0f);
+        float height = hmdCamera.position.y;
 
-        xrOrigin.position = new Vector3(0f, xrOrigin.position.y, 0f);
+        // Triangle centered at origin, at current HMD height
+        trianglePrefab.position = new Vector3(0f, height, 0f);
 
-        Debug.Log($"[ExperimentSetup] Triangle set to HMD height: {hmdCamera.position.y:F2} m");
+        float newYaw = 180f;
+        float currentYaw = hmdCamera.eulerAngles.y;
+        float yawDelta = Mathf.DeltaAngle(currentYaw, newYaw);
+
+        xrOrigin.RotateAround(hmdCamera.position, Vector3.up, yawDelta);
+        // Move rig so the HMD ends up at (0, height, 0) without changing rotation
+        Vector3 newHmdPos = new Vector3(0f, height, 0f);
+        Vector3 delta = newHmdPos - hmdCamera.position;
+        xrOrigin.position += delta;
+
+        Debug.Log($"[ExperimentSetup] Recentered HMD position to {newHmdPos}. Actual HMD pos: {hmdCamera.position}");
     }
 
     private void StartExperiment()
@@ -66,16 +109,16 @@ public class ExperimentSetup : MonoBehaviour
             return;
         }
 
+        if (startButton != null)
+        {
+            startButton.interactable = false;
+            startButton.onClick.RemoveListener(StartExperiment);
+        }
+
         trialManager.StartExperiment();
 
-        Debug.Log("[ExperimentSetup] Experiment started with randomized 60 trials.");
+        Debug.Log("[ExperimentSetup] Experiment started.");
 
-        if (menuCanvasGroup != null)
-        {
-            menuCanvasGroup.alpha = 0;
-            menuCanvasGroup.interactable = false;
-            menuCanvasGroup.blocksRaycasts = false;
-        }
     }
 
     public void ShowMenu(bool show)
